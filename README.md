@@ -1,65 +1,68 @@
+## AWS CloudFormation "Deploy CloudFormation Stack" Action for GitHub Actions
 
-# Welcome to your CDK Python project!
+![Package](https://github.com/aws-actions/aws-cloudformation-github-deploy/workflows/Package/badge.svg)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-You should explore the contents of this project. It demonstrates a CDK app with an instance of a stack (`resume_stack`)
-which contains an Amazon SQS queue that is subscribed to an Amazon SNS topic.
+Deploys AWS CloudFormation Stacks.
 
-The `cdk.json` file tells the CDK Toolkit how to execute your app.
+## Usage
 
-This project is set up like a standard Python project.  The initialization process also creates
-a virtualenv within this project, stored under the .env directory.  To create the virtualenv
-it assumes that there is a `python3` executable in your path with access to the `venv` package.
-If for any reason the automatic creation of the virtualenv fails, you can create the virtualenv
-manually once the init process completes.
-
-To manually create a virtualenv on MacOS and Linux:
-
-```
-$ python -m venv .env
+```yaml
+- name: Deploy to AWS CloudFormation
+  uses: aws-actions/aws-cloudformation-github-deploy@v1
+  with:
+    name: MyStack
+    template: myStack.yaml
+    parameter-overrides: "MyParam1=myValue,MyParam2=${{ secrets.MY_SECRET_VALUE }}"
 ```
 
-After the init process completes and the virtualenv is created, you can use the following
-step to activate your virtualenv.
+The action can be passed a CloudFormation Stack `name` and a `template` file. It will create the Stack if it does not exist, or create a [Change Set](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-changesets.html) to update the Stack. The change set is executed by default. By setting `no-execute-changeset: "1"` the change set is not executed and can be viewed. An update fails by default when the Change Set is empty. Setting `no-fail-on-empty-changeset: "1"` will override this behavior and not throw an error.
+
+See [action.yml](action.yml) for the full documentation for this action's inputs and outputs.
+
+> You can learn more about [AWS CloudFormation](https://aws.amazon.com/cloudformation/)
+
+## Credentials and Region
+
+This action relies on the [default behavior of the AWS SDK for Javascript](https://docs.aws.amazon.com/sdk-for-javascript/v2/developer-guide/setting-credentials-node.html) to determine AWS credentials and region.
+Use [the `aws-actions/configure-aws-credentials` action](https://github.com/aws-actions/configure-aws-credentials) to configure the GitHub Actions environment with environment variables containing AWS credentials and your desired region.
+
+We recommend following [Amazon IAM best practices](https://docs.aws.amazon.com/IAM/latest/UserGuide/best-practices.html) for the AWS credentials used in GitHub Actions workflows, including:
+
+- Do not store credentials in your repository's code. You may use [GitHub Actions secrets](https://help.github.com/en/actions/automating-your-workflow-with-github-actions/creating-and-using-encrypted-secrets) to store credentials and redact credentials from GitHub Actions workflow logs.
+- [Create an individual IAM user](https://docs.aws.amazon.com/IAM/latest/UserGuide/best-practices.html#create-iam-users) with an access key for use in GitHub Actions workflows, preferably one per repository. Do not use the AWS account root user access key.
+- [Grant least privilege](https://docs.aws.amazon.com/IAM/latest/UserGuide/best-practices.html#grant-least-privilege) to the credentials used in GitHub Actions workflows. Grant only the permissions required to perform the actions in your GitHub Actions workflows. See the Permissions section below for the permissions required by this action.
+- [Rotate the credentials](https://docs.aws.amazon.com/IAM/latest/UserGuide/best-practices.html#rotate-credentials) used in GitHub Actions workflows regularly.
+- [Monitor the activity](https://docs.aws.amazon.com/IAM/latest/UserGuide/best-practices.html#keep-a-log) of the credentials used in GitHub Actions workflows.
+
+## Permissions
+
+This action requires the following minimum set of permissions:
+
+> We recommend to read [AWS CloudFormation Security Best Practices](https://aws.amazon.com/blogs/devops/aws-cloudformation-security-best-practices/)
 
 ```
-$ source .env/bin/activate
+{
+    "Version":"2012-10-17",
+    "Statement":[{
+        "Effect":"Allow",
+        "Action":[
+            "cloudformation:*"
+        ],
+        "Resource":"*"
+    },
+    {
+        "Effect":"Deny",
+        "Action":[
+            "cloudformation:DeleteStack"
+        ],
+        "Resource":"arn:aws:cloudformation:us-east-1:123456789012:stack/MyProductionStack/*"
+    }]
+}
 ```
 
-If you are a Windows platform, you would activate the virtualenv like this:
+> The policy above prevents the stack to be deleted by a policy for production
 
-```
-% .env\Scripts\activate.bat
-```
+## License
 
-Once the virtualenv is activated, you can install the required dependencies.
-
-```
-$ pip install -r requirements.txt
-```
-
-At this point you can now synthesize the CloudFormation template for this code.
-
-```
-$ cdk synth
-```
-
-You can now begin exploring the source code, contained in the hello directory.
-There is also a very trivial test included that can be run like this:
-
-```
-$ pytest
-```
-
-To add additional dependencies, for example other CDK libraries, just add to
-your requirements.txt file and rerun the `pip install -r requirements.txt`
-command.
-
-## Useful commands
-
- * `cdk ls`          list all stacks in the app
- * `cdk synth`       emits the synthesized CloudFormation template
- * `cdk deploy`      deploy this stack to your default AWS account/region
- * `cdk diff`        compare deployed stack with current state
- * `cdk docs`        open CDK documentation
-
-Enjoy!
+[MIT](/LICENSE)
