@@ -1,5 +1,3 @@
---- 
-- 
   name: CRCStack
   uses: aws-actions/aws-cloudformation-github-deploy@v1.0.3
   with: 
