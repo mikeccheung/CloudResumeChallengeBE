@@ -1,4 +1,4 @@
-- name: AWS CloudFormation "Deploy CloudFormation Stack" Action for GitHub Actions
+- name: CRCStack
   uses: aws-actions/aws-cloudformation-github-deploy@v1.0.3
   with:
     # The name of the CloudFormation stack
